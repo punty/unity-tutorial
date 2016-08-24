@@ -9,26 +9,12 @@ public class PlayerController : MonoBehaviour {
 	private int count;
 	public Text countText;
 
-
-	float AccelerometerUpdateInterval  = 1.0f / 60.0f;
-	float LowPassKernelWidthInSeconds  = 1.0f;
-
-	private float LowPassFilterFactor;// tweakable
-	private Vector3 lowPassValue = Vector3.zero;
-
-
-	Vector3 LowPassFilterAccelerometer() {
-		Vector3 acc = Vector3.zero;
-		acc.x = -Input.acceleration.y;
-		acc.z = Input.acceleration.x;
-		lowPassValue = Vector3.Lerp(lowPassValue, acc, LowPassFilterFactor);
-		return lowPassValue;
+	public void Awake() {
+		Input.gyro.enabled = true;
 	}
-
+		
 	// Use this for initialization
-	void Start () {
-		LowPassFilterFactor = AccelerometerUpdateInterval / LowPassKernelWidthInSeconds; 
-		lowPassValue = Input.acceleration;
+	public void Start () {
 		rbody2d = GetComponent<Rigidbody2D> ();
 		count = 0;
 		setCountText ();
@@ -39,20 +25,14 @@ public class PlayerController : MonoBehaviour {
 	}
 
 	// Update is called once per frame
-	void Update () {
-		/*float moveHorizontal = Input.GetAxis ("Horizontal");
-		float moveVertical = Input.GetAxis ("Vertical");
-		Vector2 movement = new Vector2 (moveHorizontal, moveVertical);
-		rbody2d.AddForce (movement * speed);*/
-
-		float moveHorizontal = Input.acceleration.x;
-		float moveVertical = Input.acceleration.y;
-		Vector2 movement = new Vector2 (moveHorizontal, moveVertical);
+	public void Update () {
+		Vector3 rotation = Input.acceleration;
+		float minTilt = 0.1f;
+		if(Mathf.Abs(rotation.x) < minTilt) rotation.x = 0;
+		if(Mathf.Abs(rotation.y) < minTilt) rotation.y = 0;
+		if(Mathf.Abs(rotation.z) < minTilt) rotation.z = 0;
+		Vector2 movement = new Vector2 (rotation.x, rotation.y);
 		rbody2d.AddForce (movement * speed);
-
-
- 		
-
 	}
 
 	void OnTriggerEnter2D(Collider2D other) {
